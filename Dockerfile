@@ -5,9 +5,9 @@ COPY . .
 RUN pip install -r requirements.txt
 
 ARG HOST=0.0.0.0
-ARG PORT=8000
+ARG PORT=5000
 
 ENV HOST=$HOST
 ENV PORT=$PORT
 
-CMD ["sh", "-c", "uvicorn --proxy-headers --host $HOST --port $PORT api:app"]
+CMD ["sh", "-c", "gunicorn --bind ${HOST}:${PORT} app:app"]

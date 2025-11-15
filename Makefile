@@ -11,4 +11,4 @@ create-network:
 	fi
 
 up: create-network
-	docker-compose up
+	docker compose up
