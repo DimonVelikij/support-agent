@@ -1,0 +1,59 @@
+services:
+    vector_store:
+        image: qdrant/qdrant
+        container_name: support-agent-qdrant
+        volumes:
+            - ./data/qdrant:/qdrant/storage
+        ports:
+           - "6333:6333"
+        networks:
+            - default
+
+    postgresql:
+        image: postgres:17
+        container_name: support-agent-postgresql
+        volumes:
+            - ./data/postgresql:/var/lib/postgresql/data
+        environment:
+            POSTGRES_DB: ${POSTGRESQL_DBNAME}
+            POSTGRES_USER: ${POSTGRESQL_USER}
+            POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
+        ports:
+            - "5432:5432"
+        networks:
+            - default
+
+    app:
+        &app
+        image: python:3.12
+        build: .
+        ports:
+            - "5000:5000"
+        env_file: &env_file
+            - .env
+        depends_on: &depends_on
+            vector_store:
+                condition: service_healthy
+            postgresql:
+                condition: service_healthy
+        networks: &networks
+            - default
+
+#    app_migration:
+#        <<: *app
+#        env_file: *env_file
+#        depends_on: *depends_on
+#        networks: *networks
+#        command: ["alembic", "upgrade", "head"]
+#
+#    app_fill_vector_store:
+#        <<: *app
+#        env_file: *env_file
+#        depends_on: *depends_on
+#        networks: *networks
+#        command: ["python", "commands/confluence_qdrant.py"]
+
+networks:
+    default:
+        name: support_agent_net
+        external: true
